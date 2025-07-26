@@ -137,7 +137,7 @@ namespace Logiciel_de_contrôle_technique_automobile
                     using (SqlCommand cmd = new SqlCommand(technicienQuery, connection))
                     {
                         cmd.Parameters.AddWithValue("@email", email);
-                        cmd.Parameters.AddWithValue("@password", hashedPassword);
+                        cmd.Parameters.AddWithValue("@password", password);
 
                         using (SqlDataReader reader = await cmd.ExecuteReaderAsync())
                         {
