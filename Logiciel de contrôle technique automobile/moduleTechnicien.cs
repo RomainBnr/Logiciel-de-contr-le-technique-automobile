@@ -18,14 +18,6 @@ namespace Logiciel_de_contrôle_technique_automobile
         private VehiculeInfo selectedVehicule = null;
         private int idTechnicien;
 
-        // Constructeur par défaut
-        public moduleTechnicien()
-        {
-            InitializeComponent();
-            InitializeEvents();
-            InitializeComboBoxes();
-            this.idTechnicien = 1; // Valeur par défaut
-        }
 
         // Constructeur avec l'ID du technicien
         public moduleTechnicien(int technicienId)
@@ -41,6 +33,7 @@ namespace Logiciel_de_contrôle_technique_automobile
             // Ajouter les événements pour les boutons et contrôles
             button1.Click += Button1_Click; // Charger véhicule
             button2.Click += Button2_Click; // Fin contrôle technique
+            button3.Click += Button3_Click; // Déconnexion
             listBox1.SelectedIndexChanged += ListBox1_SelectedIndexChanged; // Sélection véhicule
         }
 
@@ -135,7 +128,6 @@ namespace Logiciel_de_contrôle_technique_automobile
 
                             vehicules.Add(vehicule);
                             
-                            // Ajouter à la listBox avec le format demandé : Modèle - Immatriculation - Nom Prénom
                             string displayText = $"{vehicule.Modele} - {vehicule.Immatriculation} - {vehicule.Client.Nom} {vehicule.Client.Prenom}";
                             listBox1.Items.Add(displayText);
                         }
@@ -285,7 +277,6 @@ namespace Logiciel_de_contrôle_technique_automobile
                 MessageBox.Show("Contrôle technique enregistré avec succès !", "Succès", 
                     MessageBoxButtons.OK, MessageBoxIcon.Information);
 
-                // Réinitialiser les champs
                 ResetForm();
             }
             catch (Exception ex)
@@ -397,7 +388,7 @@ namespace Logiciel_de_contrôle_technique_automobile
             {
                 cmd.Parameters.AddWithValue("@dateControle", DateTime.Now);
                 cmd.Parameters.AddWithValue("@vehicule", selectedVehicule.IdVehicule);
-                cmd.Parameters.AddWithValue("@technicien", this.idTechnicien); // Utiliser l'ID du technicien connecté
+                cmd.Parameters.AddWithValue("@technicien", this.idTechnicien);
 
                 return (int)await cmd.ExecuteScalarAsync();
             }
@@ -435,6 +426,37 @@ namespace Logiciel_de_contrôle_technique_automobile
             }
         }
 
+        private void Button3_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                // Demander confirmation avant de se déconnecter
+                DialogResult result = MessageBox.Show(
+                    "Êtes-vous sûr de vouloir vous déconnecter ?", 
+                    "Confirmation de déconnexion", 
+                    MessageBoxButtons.YesNo, 
+                    MessageBoxIcon.Question);
+
+                if (result == DialogResult.Yes)
+                {
+                    // Réinitialiser le formulaire avant de partir
+                    ResetForm();
+                    
+                    // Créer et afficher le formulaire de connexion
+                    loginForm loginForm = new loginForm();
+                    loginForm.Show();
+                    
+                    // Fermer le formulaire technicien actuel
+                    this.Close();
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Erreur lors de la déconnexion : {ex.Message}", "Erreur", 
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
         private void ResetForm()
         {
             comboBox1.SelectedIndex = -1;
@@ -455,7 +477,7 @@ namespace Logiciel_de_contrôle_technique_automobile
         public string Marque { get; set; }
         public string VIN { get; set; }
         public string Modele { get; set; }
-        public int Puissance { get; set; }  // Changé de string à int
+        public int Puissance { get; set; }
         public DateTime DateMiseCirculation { get; set; }
         public string Motorisation { get; set; }
         public ClientInfo Client { get; set; }
