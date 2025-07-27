@@ -13,10 +13,20 @@ namespace Logiciel_de_contrôle_technique_automobile
     public partial class moduleClientForm : Form
     {
         private string connectionString = "Server=2a03:5840:111:1024:143:e6a5:7dbe:31b3;Database=BDDControleTechnique;User ID=sa;Password=erty64%;TrustServerCertificate=True;";
-        private int idClient = 1;
+        private int idClient;
+
+        // Constructeur par défaut (pour le designer)
         public moduleClientForm()
         {
             InitializeComponent();
+            this.idClient = 1; // Valeur par défaut pour éviter les erreurs
+        }
+
+        // Constructeur avec l'ID du client connecté
+        public moduleClientForm(int clientId)
+        {
+            InitializeComponent();
+            this.idClient = clientId;
         }
 
         private void btnValider_Click(object sender, EventArgs e)

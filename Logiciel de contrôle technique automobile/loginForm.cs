@@ -65,12 +65,12 @@ namespace Logiciel_de_contrôle_technique_automobile
                     // Rediriger selon le type d'utilisateur
                     if (userInfo.UserType == "Client")
                     {
-                        moduleClientForm clientForm = new moduleClientForm();
+                        moduleClientForm clientForm = new moduleClientForm(userInfo.Id); // Passer l'ID du client
                         clientForm.Show();
                     }
                     else if (userInfo.UserType == "Technicien")
                     {
-                        moduleTechnicien technicienForm = new moduleTechnicien();
+                        moduleTechnicien technicienForm = new moduleTechnicien(userInfo.Id); // Passer l'ID du technicien
                         technicienForm.Show();
                     }
 
@@ -106,7 +106,7 @@ namespace Logiciel_de_contrôle_technique_automobile
                     await connection.OpenAsync();
 
                     // Vérifier d'abord dans la table Client
-                    string clientQuery = @"SELECT Nom, Prenom, Email FROM Client 
+                    string clientQuery = @"SELECT idClient, Nom, Prenom, Email FROM Client 
                                          WHERE Email = @email AND MotDePasse = @password";
                     
                     using (SqlCommand cmd = new SqlCommand(clientQuery, connection))
@@ -120,18 +120,18 @@ namespace Logiciel_de_contrôle_technique_automobile
                             {
                                 return new UserInfo
                                 {
+                                    Id = reader.GetInt32("idClient"), // Récupérer l'ID du client
                                     Nom = reader.GetString("Nom"),
                                     Prenom = reader.GetString("Prenom"),
                                     Email = reader.GetString("Email"),
                                     UserType = "Client"
                                 };
                             }
-                            // Si aucun client trouvé, on continue vers la vérification technicien
                         }
                     }
 
                     // Si pas trouvé dans Client, vérifier dans Technicien
-                    string technicienQuery = @"SELECT Nom, Prenom, Email FROM Technicien 
+                    string technicienQuery = @"SELECT idTechnicien, Nom, Prenom, Email FROM Technicien 
                                              WHERE Email = @email AND MotDePasse = @password";
                     
                     using (SqlCommand cmd = new SqlCommand(technicienQuery, connection))
@@ -145,6 +145,7 @@ namespace Logiciel_de_contrôle_technique_automobile
                             {
                                 return new UserInfo
                                 {
+                                    Id = reader.GetInt32("idTechnicien"), // Récupérer l'ID du technicien
                                     Nom = reader.GetString("Nom"),
                                     Prenom = reader.GetString("Prenom"),
                                     Email = reader.GetString("Email"),
@@ -154,7 +155,7 @@ namespace Logiciel_de_contrôle_technique_automobile
                         }
                     }
 
-                    return null; // Aucun utilisateur trouvé dans les deux tables
+                    return null;
                 }
                 catch (SqlException ex)
                 {

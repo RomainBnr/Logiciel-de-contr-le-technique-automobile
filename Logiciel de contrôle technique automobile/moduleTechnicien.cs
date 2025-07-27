@@ -16,12 +16,24 @@ namespace Logiciel_de_contrôle_technique_automobile
         private string connectionString = "Server=2a03:5840:111:1024:143:e6a5:7dbe:31b3;Database=BDDControleTechnique;User ID=sa;Password=erty64%;TrustServerCertificate=True;";
         private List<VehiculeInfo> vehicules = new List<VehiculeInfo>();
         private VehiculeInfo selectedVehicule = null;
+        private int idTechnicien;
 
+        // Constructeur par défaut
         public moduleTechnicien()
         {
             InitializeComponent();
             InitializeEvents();
             InitializeComboBoxes();
+            this.idTechnicien = 1; // Valeur par défaut
+        }
+
+        // Constructeur avec l'ID du technicien
+        public moduleTechnicien(int technicienId)
+        {
+            InitializeComponent();
+            InitializeEvents();
+            InitializeComboBoxes();
+            this.idTechnicien = technicienId;
         }
 
         private void InitializeEvents()
@@ -385,8 +397,7 @@ namespace Logiciel_de_contrôle_technique_automobile
             {
                 cmd.Parameters.AddWithValue("@dateControle", DateTime.Now);
                 cmd.Parameters.AddWithValue("@vehicule", selectedVehicule.IdVehicule);
-                // Vous devrez adapter selon comment vous gérez l'ID du technicien connecté
-                cmd.Parameters.AddWithValue("@technicien", 1); // À remplacer par l'ID du technicien connecté
+                cmd.Parameters.AddWithValue("@technicien", this.idTechnicien); // Utiliser l'ID du technicien connecté
 
                 return (int)await cmd.ExecuteScalarAsync();
             }
