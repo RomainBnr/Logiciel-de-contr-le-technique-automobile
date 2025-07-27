@@ -72,15 +72,15 @@ namespace Logiciel_de_contrôle_technique_automobile
                 }
 
                 // Enregistrer l'utilisateur dans la base de données
-                bool success = await RegisterUserAsync();
+                int? userId = await RegisterUserAsync();
                 
-                if (success)
+                if (userId.HasValue)
                 {
                     MessageBox.Show("Inscription réussie ! Vous allez être redirigé.", "Succès", 
                         MessageBoxButtons.OK, MessageBoxIcon.Information);
                     
-                    // Rediriger vers moduleClientForm
-                    moduleClientForm clientForm = new moduleClientForm();
+                    // Passer l'ID du nouveau client au constructeur
+                    moduleClientForm clientForm = new moduleClientForm(userId.Value);
                     clientForm.Show();
                     this.Hide();
                 }
@@ -92,7 +92,7 @@ namespace Logiciel_de_contrôle_technique_automobile
             }
         }
 
-        private async Task<bool> RegisterUserAsync()
+        private async Task<int?> RegisterUserAsync()
         {
             using (SqlConnection connection = new SqlConnection(connectionString))
             {
@@ -111,12 +111,13 @@ namespace Logiciel_de_contrôle_technique_automobile
                         {
                             MessageBox.Show("Cette adresse email est déjà utilisée.", "Erreur", 
                                 MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                            return false;
+                            return null;
                         }
                     }
                     
-                    // Insérer le nouvel utilisateur
+                    // Insérer le nouvel utilisateur et récupérer son ID
                     string insertQuery = @"INSERT INTO Client (Nom, Prenom, Email, MotDePasse) 
+                                         OUTPUT INSERTED.idClient
                                          VALUES (@nom, @prenom, @email, @motdepasse)";
                     
                     using (SqlCommand cmd = new SqlCommand(insertQuery, connection))
@@ -126,15 +127,19 @@ namespace Logiciel_de_contrôle_technique_automobile
                         cmd.Parameters.AddWithValue("@email", txtBox_email.Text.Trim());
                         cmd.Parameters.AddWithValue("@motdepasse", HashPassword(txtBox_mdp.Text));
                         
-                        int rowsAffected = await cmd.ExecuteNonQueryAsync();
-                        return rowsAffected > 0;
+                        object result = await cmd.ExecuteScalarAsync();
+                        if (result != null)
+                        {
+                            return Convert.ToInt32(result); // Retourner l'ID du nouveau client
+                        }
+                        return null;
                     }
                 }
                 catch (SqlException ex)
                 {
                     MessageBox.Show($"Erreur de base de données : {ex.Message}", "Erreur", 
                         MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return false;
+                    return null;
                 }
             }
         }
