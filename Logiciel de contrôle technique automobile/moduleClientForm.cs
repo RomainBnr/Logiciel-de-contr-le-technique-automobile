@@ -1,11 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Data.SqlClient;
-using System.Drawing;
-using System.Linq;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace Logiciel_de_contrôle_technique_automobile
@@ -15,18 +9,23 @@ namespace Logiciel_de_contrôle_technique_automobile
         private string connectionString = "Server=2a03:5840:111:1024:143:e6a5:7dbe:31b3;Database=BDDControleTechnique;User ID=sa;Password=erty64%;TrustServerCertificate=True;";
         private int idClient;
 
-        // Constructeur par défaut (pour le designer)
         public moduleClientForm()
         {
             InitializeComponent();
-            this.idClient = 1; // Valeur par défaut pour éviter les erreurs
+            this.idClient = 1;
+            this.Load += moduleClientForm_Load;
         }
 
-        // Constructeur avec l'ID du client connecté
         public moduleClientForm(int clientId)
         {
             InitializeComponent();
             this.idClient = clientId;
+            this.Load += moduleClientForm_Load;
+        }
+
+        private void moduleClientForm_Load(object sender, EventArgs e)
+        {
+            ChargerResultatsPremierVehicule();
         }
 
         private void btnValider_Click(object sender, EventArgs e)
@@ -73,11 +72,47 @@ namespace Logiciel_de_contrôle_technique_automobile
                     conn.Open();
                     int idVehicule = Convert.ToInt32(cmd.ExecuteScalar());
                     MessageBox.Show("Véhicule ajouté avec succès.");
-                    ChargerResultatsControle(idVehicule);
+                    ChargerResultatsControle(idVehicule); // Affiche directement les résultats pour ce véhicule
                 }
                 catch (Exception ex)
                 {
                     MessageBox.Show("Erreur : " + ex.Message);
+                }
+            }
+        }
+
+        private void ChargerResultatsPremierVehicule()
+        {
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                string query = @"
+                    SELECT TOP 1 IdVehicule
+                    FROM Vehicule
+                    WHERE IdClient = @IdClient
+                    ORDER BY IdVehicule DESC;";
+
+                SqlCommand cmd = new SqlCommand(query, conn);
+                cmd.Parameters.AddWithValue("@IdClient", idClient);
+
+                try
+                {
+                    conn.Open();
+                    object result = cmd.ExecuteScalar();
+
+                    if (result != null)
+                    {
+                        int idVehicule = Convert.ToInt32(result);
+                        ChargerResultatsControle(idVehicule);
+                    }
+                    else
+                    {
+                        listBox_resultatControle.Items.Clear();
+                        listBox_resultatControle.Items.Add("Aucun véhicule trouvé.");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Erreur de chargement du véhicule : " + ex.Message);
                 }
             }
         }
@@ -88,32 +123,69 @@ namespace Logiciel_de_contrôle_technique_automobile
 
             using (SqlConnection conn = new SqlConnection(connectionString))
             {
-                string query = @"
-                    SELECT D.Description, G.Libelle
-                    FROM ControleTechnique C
-                    INNER JOIN Controle_Defaillance CD ON C.IdControle = CD.IdControle
-                    INNER JOIN Defaillance D ON CD.IdDefaillance = D.IdDefaillance
-                    INNER JOIN Gravite G ON D.IdGravite = G.IdGravite
-                    WHERE C.IdVehicule = @IdVehicule";
-
-                SqlCommand cmd = new SqlCommand(query, conn);
-                cmd.Parameters.AddWithValue("@IdVehicule", idVehicule);
-
                 try
                 {
                     conn.Open();
-                    SqlDataReader reader = cmd.ExecuteReader();
+
+                    // 1. Infos véhicule
+                    string vehiculeQuery = @"
+                SELECT Marque, Modele
+                FROM Vehicule
+                WHERE IdVehicule = @IdVehicule";
+
+                    SqlCommand vehiculeCmd = new SqlCommand(vehiculeQuery, conn);
+                    vehiculeCmd.Parameters.AddWithValue("@IdVehicule", idVehicule);
+
+                    SqlDataReader vehiculeReader = vehiculeCmd.ExecuteReader();
+                    string marque = "", modele = "";
+
+                    if (vehiculeReader.Read())
+                    {
+                        marque = vehiculeReader.GetString(0);
+                        modele = vehiculeReader.GetString(1);
+                    }
+                    vehiculeReader.Close();
+
+                    listBox_resultatControle.Items.Add($"Marque : {marque}");
+                    listBox_resultatControle.Items.Add($"Modèle : {modele}");
+                    listBox_resultatControle.Items.Add("");
+
+                    // 2. Résultats de contrôle avec Point de contrôle
+                    string controleQuery = @"
+                SELECT P.Nom AS PointControle, G.Libelle AS Gravite, D.Description
+                FROM ControleTechnique C
+                INNER JOIN Controle_Defaillance CD ON C.IdControle = CD.IdControle
+                INNER JOIN Defaillance D ON CD.IdDefaillance = D.IdDefaillance
+                INNER JOIN Gravite G ON D.IdGravite = G.IdGravite
+                INNER JOIN PointControle P ON D.IdPointControle = P.IdPointControle
+                WHERE C.IdVehicule = @IdVehicule";
+
+                    SqlCommand controleCmd = new SqlCommand(controleQuery, conn);
+                    controleCmd.Parameters.AddWithValue("@IdVehicule", idVehicule);
+
+                    SqlDataReader reader = controleCmd.ExecuteReader();
+                    bool hasResults = false;
+
                     while (reader.Read())
                     {
-                        string desc = reader.GetString(0);
-                        string gravite = reader.GetString(1);
-                        listBox_resultatControle.Items.Add($"{desc} - Gravité : {gravite}");
+                        string pointControle = reader.GetString(0); // P.Nom
+                        string gravite = reader.GetString(1);       // Gravité
+                        string description = reader.GetString(2);   // Description
+
+                        listBox_resultatControle.Items.Add($"• Point de contrôle : {pointControle}");
+                        listBox_resultatControle.Items.Add($"  Gravité : {gravite}");
+                        listBox_resultatControle.Items.Add($"  Description : {description}");
+                        listBox_resultatControle.Items.Add("");
+
+                        hasResults = true;
                     }
 
-                    if (listBox_resultatControle.Items.Count == 0)
+                    if (!hasResults)
                     {
                         listBox_resultatControle.Items.Add("Aucune défaillance détectée.");
                     }
+
+                    reader.Close();
                 }
                 catch (Exception ex)
                 {
@@ -121,5 +193,6 @@ namespace Logiciel_de_contrôle_technique_automobile
                 }
             }
         }
+
     }
 }
