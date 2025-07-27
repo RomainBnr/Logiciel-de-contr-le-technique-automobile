@@ -169,14 +169,8 @@ namespace Logiciel_de_contrôle_technique_automobile
             this.Hide();
         }
 
-        private void registerForm_Load(object sender, EventArgs e)
-        {
-            
-        }
-
         private void lbl_connexion_Click(object sender, EventArgs e)
         {
-            // Même action que le LinkLabel
             LinkLabel_connexion_LinkClicked(sender, null);
         }
     }

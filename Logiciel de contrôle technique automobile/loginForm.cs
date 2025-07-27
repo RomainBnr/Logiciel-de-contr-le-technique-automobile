@@ -120,7 +120,7 @@ namespace Logiciel_de_contrôle_technique_automobile
                             {
                                 return new UserInfo
                                 {
-                                    Id = reader.GetInt32("idClient"), // Récupérer l'ID du client
+                                    Id = reader.GetInt32("idClient"),
                                     Nom = reader.GetString("Nom"),
                                     Prenom = reader.GetString("Prenom"),
                                     Email = reader.GetString("Email"),
@@ -145,7 +145,7 @@ namespace Logiciel_de_contrôle_technique_automobile
                             {
                                 return new UserInfo
                                 {
-                                    Id = reader.GetInt32("idTechnicien"), // Récupérer l'ID du technicien
+                                    Id = reader.GetInt32("idTechnicien"),
                                     Nom = reader.GetString("Nom"),
                                     Prenom = reader.GetString("Prenom"),
                                     Email = reader.GetString("Email"),
