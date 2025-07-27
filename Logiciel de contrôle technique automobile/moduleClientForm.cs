@@ -14,6 +14,7 @@ namespace Logiciel_de_contrôle_technique_automobile
             InitializeComponent();
             this.idClient = 1;
             this.Load += moduleClientForm_Load;
+            InitializeEvents();
         }
 
         public moduleClientForm(int clientId)
@@ -21,6 +22,52 @@ namespace Logiciel_de_contrôle_technique_automobile
             InitializeComponent();
             this.idClient = clientId;
             this.Load += moduleClientForm_Load;
+            InitializeEvents();
+        }
+
+        private void InitializeEvents()
+        {
+            btn_deconnexion.Click += Btn_deconnexion_Click;
+        }
+
+        private void Btn_deconnexion_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                DialogResult result = MessageBox.Show(
+                    "Êtes-vous sûr de vouloir vous déconnecter ?",
+                    "Confirmation de déconnexion",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Question);
+
+                if (result == DialogResult.Yes)
+                {
+                    ResetForm();
+
+                    loginForm loginForm = new loginForm();
+                    loginForm.Show();
+
+                    this.Close();
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Erreur lors de la déconnexion : {ex.Message}", "Erreur",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void ResetForm()
+        {
+            txtBox_marque.Clear();
+            txtBox_modele.Clear();
+            txtBox_puissance.Clear();
+            txtBox_DateMiseEnCiruclation.Clear();
+            txtBox_immatriculation.Clear();
+            txtBox_codevin.Clear();
+            comboBox_motorisation.SelectedIndex = -1;
+
+            listBox_resultatControle.Items.Clear();
         }
 
         private void moduleClientForm_Load(object sender, EventArgs e)
@@ -72,7 +119,7 @@ namespace Logiciel_de_contrôle_technique_automobile
                     conn.Open();
                     int idVehicule = Convert.ToInt32(cmd.ExecuteScalar());
                     MessageBox.Show("Véhicule ajouté avec succès.");
-                    ChargerResultatsControle(idVehicule); // Affiche directement les résultats pour ce véhicule
+                    ChargerResultatsControle(idVehicule);
                 }
                 catch (Exception ex)
                 {
@@ -127,7 +174,6 @@ namespace Logiciel_de_contrôle_technique_automobile
                 {
                     conn.Open();
 
-                    // 1. Infos véhicule
                     string vehiculeQuery = @"
                 SELECT Marque, Modele
                 FROM Vehicule
@@ -150,7 +196,6 @@ namespace Logiciel_de_contrôle_technique_automobile
                     listBox_resultatControle.Items.Add($"Modèle : {modele}");
                     listBox_resultatControle.Items.Add("");
 
-                    // 2. Résultats de contrôle avec Point de contrôle
                     string controleQuery = @"
                 SELECT P.Nom AS PointControle, G.Libelle AS Gravite, D.Description
                 FROM ControleTechnique C
@@ -168,9 +213,9 @@ namespace Logiciel_de_contrôle_technique_automobile
 
                     while (reader.Read())
                     {
-                        string pointControle = reader.GetString(0); // P.Nom
-                        string gravite = reader.GetString(1);       // Gravité
-                        string description = reader.GetString(2);   // Description
+                        string pointControle = reader.GetString(0);
+                        string gravite = reader.GetString(1);
+                        string description = reader.GetString(2);
 
                         listBox_resultatControle.Items.Add($"• Point de contrôle : {pointControle}");
                         listBox_resultatControle.Items.Add($"  Gravité : {gravite}");
@@ -193,6 +238,5 @@ namespace Logiciel_de_contrôle_technique_automobile
                 }
             }
         }
-
     }
 }
