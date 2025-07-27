@@ -133,7 +133,6 @@
             Controls.Add(lbl_inscription);
             Name = "registerForm";
             Text = "Form1";
-            Load += this.registerForm_Load;
             ResumeLayout(false);
             PerformLayout();
         }

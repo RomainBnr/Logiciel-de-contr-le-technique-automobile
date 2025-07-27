@@ -42,6 +42,7 @@
             button2 = new Button();
             label3 = new Label();
             comboBox_gravite = new ComboBox();
+            button3 = new Button();
             SuspendLayout();
             // 
             // button1
@@ -168,11 +169,21 @@
             comboBox_gravite.Size = new Size(501, 33);
             comboBox_gravite.TabIndex = 17;
             // 
+            // button3
+            // 
+            button3.Location = new Point(46, 811);
+            button3.Name = "button3";
+            button3.Size = new Size(177, 51);
+            button3.TabIndex = 18;
+            button3.Text = "Déconnexion";
+            button3.UseVisualStyleBackColor = true;
+            // 
             // moduleTechnicien
             // 
             AutoScaleDimensions = new SizeF(10F, 25F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1522, 916);
+            Controls.Add(button3);
             Controls.Add(comboBox_gravite);
             Controls.Add(label3);
             Controls.Add(button2);
@@ -209,5 +220,6 @@
         private Button button2;
         private Label label3;
         private ComboBox comboBox_gravite;
+        private Button button3;
     }
 }
